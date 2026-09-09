@@ -4,10 +4,12 @@
 #include <functional>
 #include <vector>
 #include "Settings.h"
+#include <chrono>
 
 class UserSession {
 private:
 	std::function<void(int, const InAppMessage&)> onMessageReceived;
+
 	std::thread clientThread;
 	std::string name;
 
@@ -17,6 +19,7 @@ private:
 	bool running = false;
 
 	void runWorking();
+	std::string generateUniqueKey(const std::string& userName, int socketFd, DataType type);
 	bool stop();
 public:
 	UserSession(int socketFd, 

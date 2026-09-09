@@ -5,6 +5,7 @@
 int main() {
     
     try {
+
         Server server;
         server.startServer();
 

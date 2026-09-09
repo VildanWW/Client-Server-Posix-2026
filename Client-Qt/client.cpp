@@ -18,7 +18,7 @@ void Client::onReadyRead() {
         int fullPacketSize = sizeof(PacketData) + packet.dataSize;
 
         if (socket->bytesAvailable() < fullPacketSize) {
-            return;
+            break;
         }
 
         socket->read(reinterpret_cast<char*>(&packet), sizeof(PacketData));
@@ -64,11 +64,13 @@ bool Client::sendToData(DataType type, const QByteArray &sendBuffer) {
     size_t copiedBytes = stdName.copy(packet.senderName, sizeof(packet.senderName) - 1);
     packet.senderName[copiedBytes] = '\0';
 
-    socket->write(reinterpret_cast<char*>(&packet), sizeof(PacketData));
+    QByteArray block;
+    block.reserve(sizeof(PacketData) + sendBuffer.size());
 
-    if(packet.dataSize > 0) {
-        socket->write(sendBuffer);
-    }
+    block.append(reinterpret_cast<const char*>(&packet), sizeof(PacketData));
+    block.append(sendBuffer);
+
+    socket->write(block);
     return socket->flush();
 }
 

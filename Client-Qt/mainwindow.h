@@ -21,12 +21,17 @@ private slots:
     void onClientDisconnected();
 
     void onSendButtonClicked();
+    void onAttachButtonClicked();
 private:
     std::unique_ptr<Ui::MainWindow> ui;
 
     Client* client = nullptr;
 
+    std::vector<QByteArray> selectedPhotosList;
+    std::vector<QString> selectedFileNames;
+
     void appendMessageToChat(const QString& sender, const QString& text, bool isMyMessage);
+    void appendPhotoToChat(const QString& sender, const QPixmap& pixmap, bool isMyMessage);
     bool setSettingsUser();
 };
 #endif // MAINWINDOW_H

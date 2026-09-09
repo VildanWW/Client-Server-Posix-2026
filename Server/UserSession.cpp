@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <iostream>
 #include "Settings.h"
+#include <fstream>
 
 void UserSession::runWorking() {
 	while (running) {
@@ -20,6 +21,12 @@ void UserSession::runWorking() {
 
 		else if (bytesReadPacket < 0) {
 			std::cerr << "Bytes read <= 0\n";
+			running = false;
+			break;
+		}
+
+		if (packet.dataSize > ServerConfig::maxPacketSize) {
+			std::cerr << "Client send big packet\n";
 			running = false;
 			break;
 		}
@@ -47,6 +54,22 @@ void UserSession::runWorking() {
 			continue;
 		}
 
+		if (packet.packetType != DataType::TEXT) {
+			std::string fileKey = generateUniqueKey(name, socketFd, packet.packetType);
+		
+			std::ofstream outFile(fileKey, std::ios::binary);
+			if (outFile.is_open()) {
+				outFile.write(dataBuffer.data(), dataBuffer.size());
+				outFile.close();
+				std::cout << "File successfully saved\n";
+			}
+			else {
+				std::cout << "File not successfully saved\n";
+			}
+
+			dataBuffer.assign(fileKey.begin(), fileKey.end());
+		}
+
 		if (onMessageReceived) {
 			InAppMessage messageToServer;
 
@@ -54,9 +77,23 @@ void UserSession::runWorking() {
 			messageToServer.type = packet.packetType;
 			messageToServer.dataBuffer = std::move(dataBuffer);
 
+
 			onMessageReceived(socketFd, messageToServer);
 		}
 	}
+}
+
+std::string UserSession::generateUniqueKey(const std::string& userName, int socketFd, DataType type) {
+	auto now = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch());
+	long long microseconds = duration.count();
+
+	std::string ext = ".dat";
+	if (type == DataType::IMAGE) ext = ".png";
+	else if (type == DataType::IMAGE) ext = ".ogg";
+	else if (type == DataType::VIDEO) ext = ".mp4";
+
+	return "uploads/" + std::to_string(microseconds) + "_" + std::to_string(socketFd) + "_" + userName + ext;
 }
 
 bool UserSession::getRunning() {

@@ -6,6 +6,8 @@
 #include <mutex>
 #include <condition_variable>
 
+class DatabaseManager;
+
 class Server {
 private:
 	std::unordered_map<int, std::unique_ptr<UserSession>> clientSessions;

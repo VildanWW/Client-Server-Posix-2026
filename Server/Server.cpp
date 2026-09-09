@@ -22,9 +22,11 @@ bool Server::startListenning() {
 		std::cout << "New good connect!\n";
 		std::lock_guard<std::mutex> lockGuard(serverMutexForSession);
 		{
-			clientSessions[clientSocketFd] = std::make_unique<UserSession>(clientSocketFd, [this](int fd, const InAppMessage& messageForServer) {
-				this->sendData(fd, messageForServer);
-			});
+			clientSessions[clientSocketFd] = std::make_unique<UserSession>( clientSocketFd, 
+				[this](int fd, const InAppMessage& messageForServer) {
+					this->sendData(fd, messageForServer);
+				}
+			);
 		}
 
 		clientSessions[clientSocketFd]->startWorking();
